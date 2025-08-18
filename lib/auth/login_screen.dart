@@ -293,26 +293,46 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// Handle login
-  void _onTapLogin() {
+  void _onTapLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      // TODO: Implement Supabase authentication
-      // For now, simulate loading and navigate based on email
-      Future.delayed(Duration(seconds: 2), () {
+      try {
+        final email = _emailController.text.trim();
+        final password = _passwordController.text.trim();
+
+        await Supabase.instance.client.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+
+        if (!mounted) return;
+
         setState(() {
           _isLoading = false;
         });
 
-        // Mock admin check - in real app, this would be handled by Supabase
-        if (_emailController.text.toLowerCase().contains('admin')) {
+        // Simple admin heuristic (replace with role from profile if needed)
+        if (email.toLowerCase().contains('admin')) {
           NavigatorService.pushReplacementNamed(AppRoutes.adminDashboard);
         } else {
           NavigatorService.pushReplacementNamed(AppRoutes.userDashboard);
         }
-      });
+      } on AuthException catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed. Please try again.')),
+        );
+      }
     }
   }
 

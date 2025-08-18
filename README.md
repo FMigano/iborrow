@@ -124,6 +124,159 @@ From the original Figma design:
 - ✅ Color palette and theme
 - ✅ Responsive scaling system
 
+## Backend: Supabase setup
+
+1) Create a Supabase project (you already have one).
+2) Add environment variables when running the app:
+- flutter run --dart-define SUPABASE_URL=your-project-url --dart-define SUPABASE_ANON_KEY=your-anon-key
+
+3) Database schema (SQL)
+```sql
+-- profiles table
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  username text not null,
+  email text not null,
+  role text not null default 'user',
+  created_at timestamp with time zone default now()
+);
+alter table public.profiles enable row level security;
+
+-- Reservations table
+create table if not exists public.reservations (
+  id bigint primary key generated always as identity,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  book_title text not null,
+  book_author text,
+  status text not null default 'reserved',
+  created_at timestamp with time zone default now()
+);
+alter table public.reservations enable row level security;
+
+-- RLS policies
+create policy "Users can manage own profile"
+  on public.profiles for select using (auth.uid() = id);
+
+create policy "Insert own profile"
+  on public.profiles for insert with check (auth.uid() = id);
+
+create policy "Users can read own reservations"
+  on public.reservations for select using (auth.uid() = user_id);
+
+create policy "Users can insert own reservations"
+  on public.reservations for insert with check (auth.uid() = user_id);
+```
+
+4) Edge Functions
+
+4.1) create_user_profile
+Create a function to create a profile right after sign-up.
+
+File: supabase/functions/create_user_profile/index.ts
+```ts
+// deno-lint-ignore-file no-explicit-any
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+serve(async (req) => {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const jwt = authHeader.replace("Bearer ", "");
+
+    // Authenticated user
+    const { data: userData, error: userErr } = await supabase.auth.getUser(jwt);
+    if (userErr || !userData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const username = body.username ?? userData.user.user_metadata?.username ?? "user";
+    const email = body.email ?? userData.user.email;
+
+    // Upsert to be idempotent
+    const { error } = await supabase.from("profiles").upsert({
+      id: userData.user.id,
+      username,
+      email,
+      role: "user",
+    });
+
+    if (error) throw error;
+
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: String(e?.message ?? e) }), { status: 400 });
+  }
+});
+```
+
+4.2) reserve_book
+Reserve a book for the authenticated user.
+
+File: supabase/functions/reserve_book/index.ts
+```ts
+// deno-lint-ignore-file no-explicit-any
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+serve(async (req) => {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const jwt = authHeader.replace("Bearer ", "");
+
+    const { data: userData, error: userErr } = await supabase.auth.getUser(jwt);
+    if (userErr || !userData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    const { title, author } = await req.json();
+    if (!title) {
+      return new Response(JSON.stringify({ error: "title is required" }), { status: 400 });
+    }
+
+    const { error } = await supabase.from("reservations").insert({
+      user_id: userData.user.id,
+      book_title: title,
+      book_author: author ?? null,
+      status: "reserved",
+    });
+
+    if (error) throw error;
+
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: String(e?.message ?? e) }), { status: 400 });
+  }
+});
+```
+
+4.3) Deploy functions and set secrets
+```bash
+# From your Supabase project folder (CLI initialized)
+supabase secrets set SUPABASE_URL=YOUR_URL SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
+supabase functions deploy create_user_profile
+supabase functions deploy reserve_book
+```
+
+5) Run the app
+```bash
+flutter run \
+  --dart-define SUPABASE_URL=YOUR_URL \
+  --dart-define SUPABASE_ANON_KEY=YOUR_ANON_KEY
+```
+
+Notes:
+- The app automatically invokes create_user_profile after sign-up and reserve_book when reserving.
+- Direct table writes are kept as fallback and require the RLS policies above.
+
 ## Next Steps
 
 1. **Supabase Integration**: Configure authentication and database

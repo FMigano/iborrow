@@ -403,15 +403,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text('Cancel', style: TextStyle(color: appTheme.gray500)),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // Handle logout - navigate to login screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Logout functionality coming soon!'),
-                  backgroundColor: appTheme.primaryOrange,
-                ),
-              );
+              try {
+                await Supabase.instance.client.auth.signOut();
+              } catch (_) {}
+              NavigatorService.pushReplacementNamed(AppRoutes.loginScreen);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade400,

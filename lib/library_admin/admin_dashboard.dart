@@ -285,8 +285,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
               child: Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
+                try {
+                  await Supabase.instance.client.auth.signOut();
+                } catch (_) {}
                 NavigatorService.pushReplacementNamed(AppRoutes.loginScreen);
               },
               child: Text('Logout'),

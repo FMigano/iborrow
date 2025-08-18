@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../core/app_export.dart';
 import '../widgets/custom_image_view.dart';
 import '../widgets/custom_submit_button.dart';
@@ -317,7 +318,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   /// Handle sign up
-  void _onTapSignUp() {
+  void _onTapSignUp() async {
     if (!_isTermsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please accept the Terms and Conditions')),
@@ -330,10 +331,12 @@ class _SignupScreenState extends State<SignupScreen> {
         _isLoading = true;
       });
 
-      // TODO: Implement Supabase user registration
-      // For now, simulate loading and show success
-      Future.delayed(Duration(seconds: 2), () {
-        if (!mounted) return; // Check if widget is still mounted
+      try {
+        final email = _emailController.text.trim();
+        final password = _passwordController.text.trim();
+        final username = _usernameController.text.trim();
+
+        await _signUp(email, password, username);
 
         setState(() {
           _isLoading = false;
@@ -348,7 +351,67 @@ class _SignupScreenState extends State<SignupScreen> {
 
         // Navigate back to login
         NavigatorService.goBack();
-      });
+      } on AuthException catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      } on PostgrestException catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Something went wrong. Please try again.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _signUp(String email, String password, String username) async {
+    try {
+      // On web, always use the fixed origin that is allowed in Supabase Auth URLs
+      // Tip: you can make this configurable with a --dart-define later.
+      final redirectUrl = kIsWeb ? 'http://localhost:5173' : null;
+
+      final res = await Supabase.instance.client.auth.signUp(
+        email: email,
+        password: password,
+        data: {'username': username},
+        emailRedirectTo: redirectUrl,
+      );
+
+      final user = res.user;
+      if (user == null) {
+        throw const AuthException('Sign up failed. Check the email and password.');
+      }
+
+      // Only attempt profile write when there is a session (i.e., email confirmation OFF)
+      if (res.session != null) {
+        try {
+          await Supabase.instance.client.from('profiles').upsert({
+            'id': user.id,          // required by RLS (id == auth.uid())
+            'username': username,
+            'email': email,
+            'role': 'user',
+          });
+        } catch (e) {
+          debugPrint('profiles upsert error: $e');
+        }
+      } else {
+        debugPrint('No session yet (email confirmation likely enabled).');
+      }
+    } on AuthException catch (e) {
+      debugPrint('Auth signup error: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('Unexpected signup error: $e');
+      rethrow;
     }
   }
 
