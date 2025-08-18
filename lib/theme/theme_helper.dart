@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Get the current theme and colors
 LibraryColors get appTheme => ThemeHelper().themeColor();
@@ -21,12 +22,18 @@ class ThemeHelper {
   }
 
   ThemeData _getThemeData() {
-    var colorScheme =
+    final colors = _getThemeColors();
+    final colorScheme =
         _supportedColorScheme[_appTheme] ?? ColorSchemes.libraryColorScheme;
+
     return ThemeData(
       visualDensity: VisualDensity.standard,
       colorScheme: colorScheme,
       useMaterial3: true,
+      textTheme: GoogleFonts.interTextTheme().apply(
+        bodyColor: colors.black,
+        displayColor: colors.black,
+      ),
     );
   }
 

@@ -3,7 +3,7 @@ import '../core/app_export.dart';
 import 'book_detail_screen.dart';
 
 /// Books/Library screen for iBorrow application
-/// Shows library catalog with search, categories, and book recommendations
+/// Redesigned with breadcrumb, consistent paddings, and pleasant cards
 class BooksScreen extends StatefulWidget {
   const BooksScreen({super.key});
 
@@ -84,327 +84,27 @@ class _BooksScreenState extends State<BooksScreen> {
     },
   ];
 
+  final List<String> categories = const [
+    'All',
+    'Fiction',
+    'Non-Fiction',
+    'Sci-Fi',
+    'Romance',
+    'Classics',
+  ];
+  int selectedCategory = 0;
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: appTheme.colorFFFFF2,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(16.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                SizedBox(height: 20.h),
-                _buildBrowseLibraryButton(),
-                SizedBox(height: 20.h),
-                _buildSearchBar(),
-                SizedBox(height: 24.h),
-                _buildTopReadSection(),
-                SizedBox(height: 32.h),
-                _buildRecommendedSection(),
-                SizedBox(height: 20.h),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Text(
-      'Library',
-      style: TextStyleHelper.instance.display36Regular.copyWith(
-        fontSize: 32.fSize,
-        fontWeight: FontWeight.w400,
-      ),
-    );
-  }
-
-  Widget _buildBrowseLibraryButton() {
-    return Container(
-      width: double.infinity,
-      height: 45.h,
-      decoration: BoxDecoration(
-        color: appTheme.whiteCustom,
-        borderRadius: BorderRadius.circular(8.h),
-        border: Border.all(color: appTheme.blackCustom, width: 1),
-      ),
-      child: InkWell(
-        onTap: () => _onBrowseLibrary(),
-        borderRadius: BorderRadius.circular(8.h),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12.h),
-          child: Row(
-            children: [
-              Icon(Icons.list, size: 25.h, color: appTheme.blackCustom),
-              SizedBox(width: 12.h),
-              Expanded(
-                child: Text(
-                  'Browse Library',
-                  style: TextStyleHelper.instance.body16Regular,
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16.h,
-                color: appTheme.blackCustom,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Container(
-      height: 49.h,
-      decoration: BoxDecoration(
-        color: Color(0xFFE8E8E8),
-        borderRadius: BorderRadius.circular(26.h),
-      ),
-      child: Row(
-        children: [
-          SizedBox(width: 16.h),
-          Icon(Icons.search, size: 26.h, color: appTheme.blackCustom),
-          SizedBox(width: 12.h),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Explore our Library',
-                border: InputBorder.none,
-                hintStyle: TextStyleHelper.instance.body16Regular.copyWith(
-                  color: appTheme.greyCustom,
-                ),
-              ),
-              style: TextStyleHelper.instance.body16Regular,
-              onChanged: (value) => _onSearchChanged(value),
-            ),
-          ),
-          SizedBox(width: 16.h),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopReadSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Top Read',
-          style: TextStyleHelper.instance.title18Bold.copyWith(
-            fontSize: 20.fSize,
-          ),
-        ),
-        SizedBox(height: 16.h),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.7,
-            crossAxisSpacing: 16.h,
-            mainAxisSpacing: 16.h,
-          ),
-          itemCount: topReadBooks.length,
-          itemBuilder: (context, index) {
-            return _buildBookCard(topReadBooks[index], isLarge: true);
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecommendedSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recommended For You',
-              style: TextStyleHelper.instance.title18Bold.copyWith(
-                fontSize: 20.fSize,
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _onViewAllRecommended(),
-              child: Row(
-                children: [
-                  Text(
-                    'View all',
-                    style: TextStyleHelper.instance.body16Regular,
-                  ),
-                  SizedBox(width: 4.h),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14.h,
-                    color: appTheme.blackCustom,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 16.h),
-        SizedBox(
-          height: 280.h,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: recommendedBooks.length,
-            itemBuilder: (context, index) {
-              return Container(
-                width: 140.h,
-                margin: EdgeInsets.only(right: 16.h),
-                child: _buildBookCard(recommendedBooks[index], isLarge: false),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBookCard(Map<String, dynamic> book, {required bool isLarge}) {
-    return GestureDetector(
-      onTap: () => _onBookTapped(book),
-      child: Container(
-        decoration: BoxDecoration(
-          color: appTheme.whiteCustom,
-          borderRadius: BorderRadius.circular(12.h),
-          boxShadow: [
-            BoxShadow(
-              color: appTheme.greyCustom.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Book cover
-            Expanded(
-              flex: isLarge ? 3 : 4,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(12.h),
-                  ),
-                  color: appTheme.colorFFD9D9,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(12.h),
-                  ),
-                  child: Image.network(
-                    book['image'],
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: appTheme.colorFFFC85.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(12.h),
-                          ),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.book,
-                            size: isLarge ? 48.h : 32.h,
-                            color: appTheme.colorFFFC85,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            // Book info
-            Expanded(
-              flex: isLarge ? 2 : 2,
-              child: Padding(
-                padding: EdgeInsets.all(12.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book['title'],
-                      style: TextStyleHelper.instance.body13Regular.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: isLarge ? 14.fSize : 12.fSize,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      book['author'],
-                      style: TextStyleHelper.instance.label10Regular.copyWith(
-                        fontSize: isLarge ? 12.fSize : 10.fSize,
-                        color: appTheme.greyCustom,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (isLarge) ...[
-                      SizedBox(height: 8.h),
-                      Row(
-                        children: [
-                          Icon(Icons.star, size: 14.h, color: Colors.amber),
-                          SizedBox(width: 4.h),
-                          Text(
-                            book['rating'].toString(),
-                            style: TextStyleHelper.instance.label10Regular
-                                .copyWith(
-                                  fontSize: 11.fSize,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _onBrowseLibrary() {
-    // TODO: Implement browse library functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Browse Library functionality coming soon!'),
-        backgroundColor: appTheme.colorFFFC85,
-      ),
-    );
-  }
-
   void _onSearchChanged(String query) {
     // TODO: Implement search functionality
-    print('Search query: $query');
   }
 
   void _onViewAllRecommended() {
-    // TODO: Navigate to all recommended books
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('View all recommended books coming soon!'),
@@ -414,10 +114,336 @@ class _BooksScreenState extends State<BooksScreen> {
   }
 
   void _onBookTapped(Map<String, dynamic> book) {
-    // Navigate to book details screen
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => BookDetailScreen(book: book)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: appTheme.colorFFFFF2,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(20.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Breadcrumb(items: const ['Home', 'Library']),
+                SizedBox(height: 12.h),
+                Text(
+                  'Browse Library',
+                  style: TextStyleHelper.instance.display36Regular.copyWith(
+                    fontSize: 28.fSize,
+                    height: 1.1,
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                _SearchBar(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                ),
+                SizedBox(height: 14.h),
+                _CategoryChips(
+                  categories: categories,
+                  selectedIndex: selectedCategory,
+                  onSelected: (i) => setState(() => selectedCategory = i),
+                ),
+                SizedBox(height: 24.h),
+
+                // Top Read
+                _SectionHeader(
+                  title: 'Top Read',
+                  trailing: _SeeAll(onTap: () {}),
+                ),
+                SizedBox(height: 12.h),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.72,
+                    crossAxisSpacing: 14.h,
+                    mainAxisSpacing: 14.h,
+                  ),
+                  itemCount: topReadBooks.length,
+                  itemBuilder: (context, index) {
+                    final book = topReadBooks[index];
+                    return _BookCard(
+                      book: book,
+                      onTap: () => _onBookTapped(book),
+                    );
+                  },
+                ),
+                SizedBox(height: 24.h),
+
+                // Recommended
+                _SectionHeader(
+                  title: 'Recommended For You',
+                  trailing: _SeeAll(onTap: _onViewAllRecommended),
+                ),
+                SizedBox(height: 12.h),
+                SizedBox(
+                  height: 190.h,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: recommendedBooks.length,
+                    separatorBuilder: (_, __) => SizedBox(width: 14.h),
+                    itemBuilder: (context, index) {
+                      final book = recommendedBooks[index];
+                      return SizedBox(
+                        width: 150.h,
+                        child: _BookCard(
+                          book: book,
+                          onTap: () => _onBookTapped(book),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Breadcrumb extends StatelessWidget {
+  final List<String> items;
+  const _Breadcrumb({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 6.h,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (int i = 0; i < items.length; i++) ...[
+          Text(
+            items[i],
+            style: TextStyleHelper.instance.label12Regular.copyWith(
+              color: appTheme.greyCustom,
+            ),
+          ),
+          if (i != items.length - 1)
+            Icon(Icons.chevron_right, size: 14.h, color: appTheme.greyCustom),
+        ],
+      ],
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  const _SearchBar({required this.controller, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        hintText: 'Search by title, author, or genre',
+        prefixIcon: Icon(Icons.search, color: appTheme.blackCustom),
+        filled: true,
+      ),
+      style: TextStyleHelper.instance.body16Regular,
+    );
+  }
+}
+
+class _CategoryChips extends StatelessWidget {
+  final List<String> categories;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+  const _CategoryChips({
+    required this.categories,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 36.h,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => SizedBox(width: 8.h),
+        itemBuilder: (context, i) {
+          final selected = i == selectedIndex;
+          return InkWell(
+            onTap: () => onSelected(i),
+            borderRadius: BorderRadius.circular(18.h),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.h),
+              decoration: BoxDecoration(
+                color: selected
+                    ? appTheme.primaryOrange.withValues(alpha: 0.15)
+                    : appTheme.whiteCustom,
+                borderRadius: BorderRadius.circular(18.h),
+                border: Border.all(
+                  color: selected ? appTheme.primaryOrange : appTheme.grey200,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                categories[i],
+                style: TextStyleHelper.instance.label12Regular.copyWith(
+                  color: selected ? appTheme.primaryOrange : appTheme.blackCustom,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final Widget? trailing;
+  const _SectionHeader({required this.title, this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: TextStyleHelper.instance.title18Bold.copyWith(
+            fontSize: 20.fSize,
+          ),
+        ),
+        const Spacer(),
+        if (trailing != null) trailing!,
+      ],
+    );
+  }
+}
+
+class _SeeAll extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SeeAll({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6.h),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 6.h),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('See all', style: TextStyleHelper.instance.body13Regular),
+            SizedBox(width: 6.h),
+            Icon(Icons.arrow_forward_ios, size: 12.h, color: appTheme.blackCustom),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BookCard extends StatelessWidget {
+  final Map<String, dynamic> book;
+  final VoidCallback onTap;
+  const _BookCard({required this.book, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: appTheme.whiteCustom,
+          borderRadius: BorderRadius.circular(12.h),
+          boxShadow: [
+            BoxShadow(
+              color: appTheme.greyCustom.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: Border.all(color: appTheme.grey200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cover
+            Expanded(
+              flex: 6,
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12.h)),
+                child: Image.network(
+                  book['image'],
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: appTheme.colorFFFC85.withValues(alpha: 0.2),
+                      child: Center(
+                        child: Icon(Icons.book, size: 40.h, color: appTheme.colorFFFC85),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            // Meta
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: EdgeInsets.all(12.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book['title'],
+                      style: TextStyleHelper.instance.body13Regular.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14.fSize,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      book['author'],
+                      style: TextStyleHelper.instance.label12Regular.copyWith(
+                        color: appTheme.greyCustom,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Icon(Icons.star, size: 14.h, color: Colors.amber),
+                        SizedBox(width: 4.h),
+                        Text(
+                          (book['rating'] ?? 0).toString(),
+                          style: TextStyleHelper.instance.label12Regular.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

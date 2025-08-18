@@ -15,6 +15,7 @@ dependencies:
 
   # UI components
   flutter_svg: ^2.0.12
+  google_fonts: ^6.2.1
 
   # Supabase for backend
   supabase_flutter: ^2.3.4

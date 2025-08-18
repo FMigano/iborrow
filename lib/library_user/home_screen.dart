@@ -73,313 +73,123 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: appTheme.colorFFFFF2,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: 100.h), // Account for bottom nav
+          padding: EdgeInsets.only(bottom: 80.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
-              SizedBox(height: 32.h),
-              _buildCurrentlyBorrowingSection(),
-              SizedBox(height: 40.h),
-              _buildScienceFictionSection(),
-              SizedBox(height: 40.h),
-              _buildRecommendedSection(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 30.h, vertical: 24.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hi, $userName!',
-                style: TextStyleHelper.instance.body13RegularInter.copyWith(
-                  fontSize: 13.fSize,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                'What would you like\nto read today?',
-                style: TextStyleHelper.instance.display36Regular.copyWith(
-                  fontSize: 24.fSize,
-                  height: 1.2,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(
-            width: 24.h,
-            height: 24.h,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                _showNotifications();
-              },
-              icon: Icon(
-                Icons.notifications_outlined,
-                size: 24.h,
-                color: appTheme.blackCustom,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCurrentlyBorrowingSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 30.h),
-          child: Text(
-            'Currently Borrowing',
-            style: TextStyleHelper.instance.title18Bold.copyWith(
-              fontSize: 20.fSize,
-            ),
-          ),
-        ),
-        SizedBox(height: 16.h),
-        if (currentlyBorrowing.isNotEmpty)
-          _buildLargeBorrowingCard(currentlyBorrowing.first)
-        else
-          _buildEmptyBorrowingCard(),
-      ],
-    );
-  }
-
-  Widget _buildLargeBorrowingCard(BookModel book) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 30.h),
-      height: 156.h,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.h),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.h),
-        child: Row(
-          children: [
-            // Book cover
-            SizedBox(
-              width: 120.h,
-              height: 156.h,
-              child: CustomImageView(
-                imagePath: book.coverUrl,
-                fit: BoxFit.cover,
-              ),
-            ),
-            // Book details
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.all(16.h),
-                color: appTheme.whiteCustom,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+              // Top app bar area
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 16.h),
+                child: Row(
                   children: [
-                    Text(
-                      book.title,
-                      style: TextStyleHelper.instance.body16Regular.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppBreadcrumb(items: const ['Home']),
+                          SizedBox(height: 10.h),
+                          Text(
+                            'Welcome back, $userName',
+                            style: TextStyleHelper.instance.title18Bold.copyWith(
+                              fontSize: 20.fSize,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            'Find your next great read',
+                            style: TextStyleHelper.instance.body13Regular.copyWith(
+                              color: appTheme.greyCustom,
+                            ),
+                          ),
+                        ],
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      'by ${book.author}',
-                      style: TextStyleHelper.instance.body13Regular.copyWith(
-                        color: appTheme.greyCustom,
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.h,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: appTheme.colorFFFC85.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(4.h),
-                      ),
-                      child: Text(
-                        'Due: ${book.dueDate}',
-                        style: TextStyleHelper.instance.label10Regular.copyWith(
-                          color: appTheme.colorFFBA5A,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    IconButton(
+                      onPressed: _showNotifications,
+                      icon: Icon(
+                        Icons.notifications_outlined,
+                        size: 24.h,
+                        color: appTheme.blackCustom,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildEmptyBorrowingCard() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 30.h),
-      height: 156.h,
-      decoration: BoxDecoration(
-        color: appTheme.whiteCustom,
-        borderRadius: BorderRadius.circular(12.h),
-        border: Border.all(color: appTheme.grey200),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.book_outlined, size: 48.h, color: appTheme.greyCustom),
-            SizedBox(height: 8.h),
-            Text(
-              'No books currently borrowed',
-              style: TextStyleHelper.instance.body13Regular.copyWith(
-                color: appTheme.greyCustom,
+              // Search CTA
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.h),
+                child: _BrowseLibraryButton(onTap: _onBrowseLibrary),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+              SizedBox(height: 16.h),
 
-  Widget _buildScienceFictionSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 30.h),
-          child: Text(
-            'Science Fiction',
-            style: TextStyleHelper.instance.title18Bold.copyWith(
-              fontSize: 20.fSize,
-            ),
-          ),
-        ),
-        SizedBox(height: 16.h),
-        _buildBookGrid(scienceFictionBooks),
-      ],
-    );
-  }
-
-  Widget _buildRecommendedSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 30.h),
-          child: Text(
-            'Recommended for You',
-            style: TextStyleHelper.instance.title18Bold.copyWith(
-              fontSize: 20.fSize,
-            ),
-          ),
-        ),
-        SizedBox(height: 16.h),
-        _buildBookGrid(recommendedBooks),
-      ],
-    );
-  }
-
-  Widget _buildBookGrid(List<BookModel> books) {
-    return SizedBox(
-      height: 156.h,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 30.h),
-        itemCount: books.length,
-        itemBuilder: (context, index) {
-          return _buildBookCard(books[index]);
-        },
-      ),
-    );
-  }
-
-  Widget _buildBookCard(BookModel book) {
-    return Container(
-      width: 131.h,
-      margin: EdgeInsets.only(right: 16.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.h),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8.h),
-        child: Stack(
-          children: [
-            CustomImageView(
-              imagePath: book.coverUrl,
-              width: 131.h,
-              height: 156.h,
-              fit: BoxFit.cover,
-            ),
-            Container(
-              width: 131.h,
-              height: 156.h,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
+              // Currently Borrowing
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.h),
+                child: SectionHeader(
+                  title: 'Currently Borrowing',
+                  trailing: currentlyBorrowing.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () {},
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Details',
+                                style: TextStyleHelper.instance.body13Regular.copyWith(
+                                  color: appTheme.colorFFBA5A,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(width: 6.h),
+                              Icon(Icons.open_in_new, size: 16.h, color: appTheme.colorFFBA5A),
+                            ],
+                          ),
+                        )
+                      : null,
                 ),
               ),
-            ),
-            Positioned(
-              bottom: 8.h,
-              left: 8.h,
-              right: 8.h,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    book.title,
-                    style: TextStyleHelper.instance.label12Regular.copyWith(
-                      color: appTheme.whiteCustom,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    book.author,
-                    style: TextStyleHelper.instance.label10Regular.copyWith(
-                      color: appTheme.whiteCustom.withValues(alpha: 0.8),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+              SizedBox(height: 10.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.h),
+                child: currentlyBorrowing.isNotEmpty
+                    ? _BorrowingLargeCard(book: currentlyBorrowing.first)
+                    : _EmptyStateCard(
+                        icon: Icons.book_outlined,
+                        title: 'No books currently borrowed',
+                        subtitle: 'Browse the library and borrow your first book',
+                        buttonText: 'Browse Library',
+                        onTap: _onBrowseLibrary,
+                      ),
               ),
-            ),
-          ],
+
+              SizedBox(height: 24.h),
+
+              // Science Fiction Section
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.h),
+                child: SectionHeader(
+                  title: 'Science Fiction',
+                  trailing: _SeeAll(onTap: () {}),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              SizedBox(height: 180.h, child: _HorizontalBooks(books: scienceFictionBooks)),
+
+              SizedBox(height: 24.h),
+
+              // Recommended Section
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.h),
+                child: SectionHeader(
+                  title: 'Recommended for You',
+                  trailing: _SeeAll(onTap: _onSeeAllRecommended),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              SizedBox(height: 180.h, child: _HorizontalBooks(books: recommendedBooks)),
+            ],
+          ),
         ),
       ),
     );
@@ -390,6 +200,401 @@ class _HomeScreenState extends State<HomeScreen> {
       SnackBar(
         content: Text('Notifications feature coming soon!'),
         backgroundColor: appTheme.colorFFFC85,
+      ),
+    );
+  }
+
+  void _onBrowseLibrary() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Browse Library functionality coming soon!'),
+        backgroundColor: appTheme.colorFFFC85,
+      ),
+    );
+  }
+
+  void _onSeeAllRecommended() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('View all recommended books coming soon!'),
+        backgroundColor: appTheme.colorFFFC85,
+      ),
+    );
+  }
+}
+
+/// Breadcrumb component
+class AppBreadcrumb extends StatelessWidget {
+  final List<String> items;
+  const AppBreadcrumb({super.key, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 6.h,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (int i = 0; i < items.length; i++) ...[
+          Text(
+            items[i],
+            style: TextStyleHelper.instance.label12Regular.copyWith(
+              color: appTheme.greyCustom,
+            ),
+          ),
+          if (i != items.length - 1)
+            Icon(Icons.chevron_right, size: 14.h, color: appTheme.greyCustom),
+        ],
+      ],
+    );
+  }
+}
+
+/// Section header with optional trailing action
+class SectionHeader extends StatelessWidget {
+  final String title;
+  final Widget? trailing;
+
+  const SectionHeader({super.key, required this.title, this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: TextStyleHelper.instance.title18Bold.copyWith(
+            fontSize: 20.fSize,
+          ),
+        ),
+        const Spacer(),
+        if (trailing != null) trailing!,
+      ],
+    );
+  }
+}
+
+/// Small "See all" action
+class _SeeAll extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SeeAll({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6.h),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 6.h),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('See all', style: TextStyleHelper.instance.body13Regular),
+            SizedBox(width: 6.h),
+            Icon(Icons.arrow_forward_ios, size: 12.h, color: appTheme.blackCustom),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Browse Library button (prominent)
+class _BrowseLibraryButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _BrowseLibraryButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48.h,
+      decoration: BoxDecoration(
+        color: appTheme.whiteCustom,
+        borderRadius: BorderRadius.circular(10.h),
+        border: Border.all(color: appTheme.blackCustom, width: 1),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10.h),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 14.h),
+          child: Row(
+            children: [
+              Icon(Icons.search, size: 22.h, color: appTheme.blackCustom),
+              SizedBox(width: 10.h),
+              Expanded(
+                child: Text(
+                  'Explore our Library',
+                  style: TextStyleHelper.instance.body16Regular,
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, size: 14.h, color: appTheme.blackCustom),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Large borrowing card
+class _BorrowingLargeCard extends StatelessWidget {
+  final BookModel book;
+  const _BorrowingLargeCard({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 156.h,
+      decoration: BoxDecoration(
+        color: appTheme.whiteCustom,
+        borderRadius: BorderRadius.circular(12.h),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(color: appTheme.grey200),
+      ),
+      child: Row(
+        children: [
+          // Cover
+          ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(12.h),
+              bottomLeft: Radius.circular(12.h),
+            ),
+            child: SizedBox(
+              width: 120.h,
+              height: 156.h,
+              child: CustomImageView(
+                imagePath: book.coverUrl,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // Details
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(14.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.title,
+                    style: TextStyleHelper.instance.body16Regular.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    'by ${book.author}',
+                    style: TextStyleHelper.instance.body13Regular.copyWith(
+                      color: appTheme.greyCustom,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 4.h),
+                        decoration: BoxDecoration(
+                          color: appTheme.colorFFFC85.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6.h),
+                        ),
+                        child: Text(
+                          'Due: ${book.dueDate}',
+                          style: TextStyleHelper.instance.label12Regular.copyWith(
+                            color: appTheme.colorFFBA5A,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(Icons.more_horiz, color: appTheme.greyCustom, size: 20.h),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Generic empty state card
+class _EmptyStateCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String buttonText;
+  final VoidCallback onTap;
+
+  const _EmptyStateCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.buttonText,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20.h),
+      decoration: BoxDecoration(
+        color: appTheme.whiteCustom,
+        borderRadius: BorderRadius.circular(12.h),
+        border: Border.all(color: appTheme.grey200),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 40.h, color: appTheme.greyCustom),
+          SizedBox(height: 10.h),
+          Text(
+            title,
+            style: TextStyleHelper.instance.title18Bold.copyWith(
+              color: appTheme.black,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            subtitle,
+            style: TextStyleHelper.instance.body13Regular.copyWith(
+              color: appTheme.greyCustom,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 14.h),
+          SizedBox(
+            height: 40.h,
+            child: ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: appTheme.colorFFBA5A,
+                foregroundColor: appTheme.white,
+                padding: EdgeInsets.symmetric(horizontal: 18.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.h),
+                ),
+              ),
+              child: Text(
+                buttonText,
+                style: TextStyleHelper.instance.buttonText,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Horizontal books scroller
+class _HorizontalBooks extends StatelessWidget {
+  final List<BookModel> books;
+  const _HorizontalBooks({required this.books});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: EdgeInsets.symmetric(horizontal: 20.h),
+      scrollDirection: Axis.horizontal,
+      itemBuilder: (context, i) => _BookCardCompact(book: books[i]),
+      separatorBuilder: (_, __) => SizedBox(width: 14.h),
+      itemCount: books.length,
+    );
+  }
+}
+
+/// Compact book card
+class _BookCardCompact extends StatelessWidget {
+  final BookModel book;
+  const _BookCardCompact({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 132.h,
+      decoration: BoxDecoration(
+        color: appTheme.whiteCustom,
+        borderRadius: BorderRadius.circular(10.h),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // cover
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CustomImageView(
+                      imagePath: book.coverUrl,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.4),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // meta
+            Padding(
+              padding: EdgeInsets.all(10.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyleHelper.instance.body13Regular.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    book.author,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyleHelper.instance.label12Regular.copyWith(
+                      color: appTheme.blackCustom.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

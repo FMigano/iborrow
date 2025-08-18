@@ -5,7 +5,7 @@ import 'library_screen.dart';
 import 'saved_screen.dart';
 import 'profile_screen.dart';
 
-/// Main navigation wrapper for user screens with bottom navigation
+/// Main navigation wrapper for user screens with modern bottom navigation
 class UserMainScreen extends StatefulWidget {
   const UserMainScreen({super.key});
 
@@ -16,7 +16,7 @@ class UserMainScreen extends StatefulWidget {
 class _UserMainScreenState extends State<UserMainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
+  final List<Widget> _screens = const [
     HomeScreen(),
     LibraryScreen(),
     SavedScreen(),
@@ -28,75 +28,109 @@ class _UserMainScreenState extends State<UserMainScreen> {
     return Scaffold(
       backgroundColor: appTheme.colorFFFFF2,
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: _buildBottomNavigation(),
+      bottomNavigationBar: _ModernNavBar(
+        index: _currentIndex,
+        onChanged: (i) => setState(() => _currentIndex = i),
+      ),
     );
   }
+}
 
-  Widget _buildBottomNavigation() {
-    return Container(
-      height: 76.h,
-      decoration: BoxDecoration(
-        color: appTheme.colorFFFC85,
-        boxShadow: [
-          BoxShadow(
-            offset: Offset(0, -4),
-            blurRadius: 4,
-            color: Colors.black.withValues(alpha: 0.25),
-          ),
-        ],
+class _ModernNavBar extends StatelessWidget {
+  final int index;
+  final ValueChanged<int> onChanged;
+  const _ModernNavBar({required this.index, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return NavigationBarTheme(
+      data: NavigationBarThemeData(
+        height: 56.h,
+        backgroundColor: appTheme.colorFFFC85, // restored orange background
+        indicatorColor: Colors.white.withValues(alpha: 0.20),
+        surfaceTintColor: Colors.transparent,
+        labelTextStyle: MaterialStateProperty.resolveWith((states) {
+          final selected = states.contains(MaterialState.selected);
+          return TextStyleHelper.instance.label12Regular.copyWith(
+            color: selected
+                ? appTheme.whiteCustom
+                : appTheme.whiteCustom.withValues(alpha: 0.85),
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          );
+        }),
       ),
-      child: Stack(
-        children: [
-          // Selected tab background
-          Positioned(
-            left: (_currentIndex * (412.h / 4)),
-            top: 0,
-            child: Container(
-              width: 101.h,
-              height: 76.h,
-              color: appTheme.colorFFBA5A,
+      child: NavigationBar(
+        selectedIndex: index,
+        onDestinationSelected: onChanged,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined,
+                color: appTheme.whiteCustom.withValues(alpha: 0.85), size: 20.h),
+            selectedIcon: _PillIcon(
+              icon: Icons.home,
+              bgColor: Colors.white.withValues(alpha: 0.25),
+              iconColor: appTheme.whiteCustom,
             ),
+            label: 'Home',
           ),
-          // Navigation items
-          Row(
-            children: [
-              _buildNavItem(0, 'Home', Icons.home),
-              _buildNavItem(1, 'Library', Icons.library_books),
-              _buildNavItem(2, 'Saved', Icons.star),
-              _buildNavItem(3, 'Profile', Icons.person),
-            ],
+          NavigationDestination(
+            icon: Icon(Icons.library_books_outlined,
+                color: appTheme.whiteCustom.withValues(alpha: 0.85), size: 20.h),
+            selectedIcon: _PillIcon(
+              icon: Icons.library_books,
+              bgColor: Colors.white.withValues(alpha: 0.25),
+              iconColor: appTheme.whiteCustom,
+            ),
+            label: 'Library',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.star_border,
+                color: appTheme.whiteCustom.withValues(alpha: 0.85), size: 20.h),
+            selectedIcon: _PillIcon(
+              icon: Icons.star,
+              bgColor: Colors.white.withValues(alpha: 0.25),
+              iconColor: appTheme.whiteCustom,
+            ),
+            label: 'Saved',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline,
+                color: appTheme.whiteCustom.withValues(alpha: 0.85), size: 20.h),
+            selectedIcon: _PillIcon(
+              icon: Icons.person,
+              bgColor: Colors.white.withValues(alpha: 0.25),
+              iconColor: appTheme.whiteCustom,
+            ),
+            label: 'Profile',
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildNavItem(int index, String title, IconData icon) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        child: SizedBox(
-          height: 76.h,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 24.h, color: appTheme.whiteCustom),
-              SizedBox(height: 4.h),
-              Text(
-                title,
-                style: TextStyleHelper.instance.label12Regular.copyWith(
-                  color: appTheme.whiteCustom,
-                  fontSize: 14.fSize,
-                ),
-              ),
-            ],
-          ),
-        ),
+class _PillIcon extends StatelessWidget {
+  final IconData icon;
+  final Color bgColor;
+  final Color iconColor;
+  const _PillIcon({
+    required this.icon,
+    required this.bgColor,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40.h,
+      height: 28.h,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16.h),
       ),
+      alignment: Alignment.center,
+      child: Icon(icon, size: 18.h, color: iconColor),
     );
   }
 }

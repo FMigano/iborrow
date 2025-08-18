@@ -7,10 +7,22 @@ const num figmaDesignStatusBar = 0;
 
 extension ResponsiveExtension on num {
   double get _width => SizeUtils.width;
+  double get _height => SizeUtils.height;
 
+  // Backward-compatible width-based scaling (used widely as `.h` before)
   double get h => ((this * _width) / figmaDesignWidth);
 
-  double get fSize => ((this * _width) / figmaDesignWidth);
+  // Width-based scaling (explicit)
+  double get w => ((this * _width) / figmaDesignWidth);
+
+  // Proper vertical scaling based on screen height
+  double get v => ((this * _height) / figmaDesignHeight);
+
+  // Uniform scale using the smaller axis (keeps layout pleasant across devices)
+  double get r => (this * SizeUtils.scale);
+
+  // Font size scaling using uniform scale (reduces oversized text on tall screens)
+  double get fSize => (this * SizeUtils.textScale);
 }
 
 extension FormatExtension on double {
@@ -59,6 +71,10 @@ class SizeUtils {
   static late double height;
   static late double width;
 
+  // Uniform scale and text scale
+  static late double scale;
+  static late double textScale;
+
   static void setScreenSize(
     BoxConstraints constraints,
     Orientation currentOrientation,
@@ -75,5 +91,14 @@ class SizeUtils {
       height = boxConstraints.maxWidth.isNonZero();
     }
     deviceType = DeviceType.mobile;
+
+    final widthScale = width / figmaDesignWidth;
+    final heightScale = height / figmaDesignHeight;
+
+    // Use the smaller scale to keep UI balanced across devices
+    scale = widthScale < heightScale ? widthScale : heightScale;
+
+    // Text scale follows uniform scale with sane clamp to avoid extremes
+    textScale = scale.clamp(0.9, 1.15);
   }
 }

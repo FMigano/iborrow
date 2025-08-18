@@ -51,24 +51,24 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  /// Header section with background image and title
+    /// Header section with background image and title
   Widget _buildHeaderSection() {
     return SizedBox(
-      height: 454.h,
+      height: 454.v,
       width: double.maxFinite,
       child: Stack(
         alignment: Alignment.center,
         children: [
           CustomImageView(
             imagePath: ImageConstant.imgRectangle7Yellow900,
-            height: 398.h,
+            height: 398.v,
             width: double.maxFinite,
             alignment: Alignment.topCenter,
             fit: BoxFit.cover,
           ),
           CustomImageView(
             imagePath: ImageConstant.imgImage2422x412,
-            height: 422.h,
+            height: 422.v,
             width: double.maxFinite,
             alignment: Alignment.topCenter,
             fit: BoxFit.cover,
@@ -76,7 +76,7 @@ class _SignupScreenState extends State<SignupScreen> {
           Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
-              padding: EdgeInsets.only(left: 35.h, bottom: 52.h),
+              padding: EdgeInsets.only(left: 35.h, bottom: 52.v),
               child: Text(
                 'iBorrow\nSign-Up',
                 style: TextStyleHelper.instance.display36Regular.copyWith(
